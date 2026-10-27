@@ -1,0 +1,53 @@
+name: Tests (Windows)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Configure
+        run: cmake -B build -DA2B_BUILD_TESTS=ON
+      - name: Build tests
+        run: cmake --build build --config Release --target a2b_tracker_test a2b_fx_test a2b_gen_test Audio2BassProcessorTest Audio2BassSynthProcessorTest --parallel
+      - name: List built executables
+        shell: pwsh
+        run: Get-ChildItem -Path build -Recurse -Filter *.exe | Where-Object { $_.FullName -notmatch 'CMakeFiles' } | ForEach-Object { $_.FullName }
+      - name: Pitch tracker tests
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path build -Recurse -Include a2b_tracker_test.exe | Select-Object -First 1
+          if (-not $exe) { Write-Host "a2b_tracker_test.exe not found"; exit 1 }
+          & $exe.FullName
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: FX block tests
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path build -Recurse -Include a2b_fx_test.exe | Select-Object -First 1
+          if (-not $exe) { Write-Host "a2b_fx_test.exe not found"; exit 1 }
+          & $exe.FullName
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: AI preset generator tests
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path build -Recurse -Include a2b_gen_test.exe | Select-Object -First 1
+          if (-not $exe) { Write-Host "a2b_gen_test.exe not found"; exit 1 }
+          & $exe.FullName
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Processor tests (effect)
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path build -Recurse -Include a2b_processor_test.exe,Audio2BassProcessorTest.exe | Select-Object -First 1
+          if (-not $exe) { Write-Host "processor test executable not found (see list above)"; exit 1 }
+          & $exe.FullName
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Processor tests (synth)
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path build -Recurse -Include a2b_synth_test.exe,Audio2BassSynthProcessorTest.exe | Select-Object -First 1
+          if (-not $exe) { Write-Host "synth test executable not found (see list above)"; exit 1 }
+          & $exe.FullName
+          if ($LASTEXITCODE -ne 0) { exit 1 }
