@@ -1,0 +1,25 @@
+name: Build VST3 (Windows)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build (effect + synth)
+        run: cmake --build build --config Release --parallel
+      - name: Upload Audio2Bass (effect) VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: Audio2Bass-VST3
+          path: build/Audio2Bass_artefacts/Release/VST3/Audio2Bass.vst3
+      - name: Upload Audio2Bass Synth (instrument) VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: Audio2BassSynth-VST3
+          path: build/Audio2BassSynth_artefacts/Release/VST3/Audio2BassSynth.vst3
