@@ -539,6 +539,16 @@ int main()
                "Deep 808 fold " + juce::String (legacyFold, 0) + ", Original Follow fold " + juce::String (origFold, 0) + " srclvl " + juce::String (origSrc, 1));
     }
 
+    // 28) Az effekt gyári presetjei létező paramétereket állítanak, és nincs köztük szintetizátor-preset
+    {
+        Audio2BassProcessor p;
+        bool noSynthPresets = true;
+        for (int i = 0; i < p.getNumPrograms(); ++i)
+            if (p.getProgramName (i) == "Saw Lead" || p.getProgramName (i) == "Warm Pad" || p.getProgramName (i) == "Init") noSynthPresets = false;
+        check (p.countInvalidPresetIds() == 0 && noSynthPresets, "effect: factory presets use real parameters, no synth-only presets",
+               juce::String (p.countInvalidPresetIds()) + " unknown IDs");
+    }
+
     std::printf ("=== %s (%d failure%s) ===\n", failures == 0 ? "ALL PASSED" : "SOME FAILED", failures, failures == 1 ? "" : "s");
     return failures == 0 ? 0 : 1;
 }

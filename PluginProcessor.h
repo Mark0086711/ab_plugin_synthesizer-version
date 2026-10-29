@@ -8,6 +8,7 @@
 #include "Dsp.h"
 #include "PitchTracker.h"
 #include "Fx.h"
+#include "PolySynth.h"
 #include "PresetGen.h"
 #include <array>
 
@@ -28,7 +29,7 @@ public:
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
 
-    const juce::String getName() const override { return A2B_SYNTH ? "Audio2Bass Synth" : "Audio2Bass"; }
+    const juce::String getName() const override { return A2B_SYNTH ? "Audio2Synth" : "Audio2Bass"; }
     bool acceptsMidi() const override { return A2B_SYNTH != 0; }
     bool producesMidi() const override { return false; }
     double getTailLengthSeconds() const override { return A2B_SYNTH ? 3.0 : 0.0; }
@@ -58,6 +59,7 @@ public:
     bool deleteUserPreset (const juce::String& name, const juce::String& category);
     juce::String getCurrentPresetName();
     static juce::StringArray getCategories();
+    int countInvalidPresetIds() const;          // ellenőrzés: minden gyári preset létező paramétert állít
     juce::File getUserPresetDir() const { return userPresetDir; }
     void setUserPresetDir (const juce::File& dir) { userPresetDir = dir; }
 
@@ -118,12 +120,9 @@ private:
     std::vector<GenEntry> genHistory;
     int genPos = -1;
 
-    // ---- MIDI (szintetizátor mód) ----
-    int   heldNote[16] {};
-    float heldVel[16] {};
-    int   heldCount = 0, curNote = -1;
-    float curVel = 1.0f, bendCur = 0.0f, bendTarget = 0.0f;
-    bool  midiNewNote = false;
+    // ---- Polifonikus szintetizátor-motor (A2B_SYNTH mód) ----
+    a2b::PolySynth synth;
+    a2b::SynthParams synthP;
     std::vector<std::pair<juce::RangedAudioParameter*, std::pair<float, float>>> morphSet;
     std::atomic<float> duckTarget { 1.0f };  // presetváltáskor rövid elhalkítás
     float duckGain = 1.0f;

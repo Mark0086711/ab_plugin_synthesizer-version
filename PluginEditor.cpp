@@ -392,12 +392,12 @@ Audio2BassEditor::Audio2BassEditor (Audio2BassProcessor& p)
     : juce::AudioProcessorEditor (&p), proc (p), infoPanel (p)
 {
    #if A2B_SYNTH
-    setSize (900, 610);
+    setSize (960, 610);
    #else
     setSize (830, 610);
    #endif
 
-    title.setText (A2B_SYNTH ? "AUDIO2BASS SYNTH" : "AUDIO2BASS", juce::dontSendNotification);
+    title.setText (A2B_SYNTH ? "AUDIO2SYNTH" : "AUDIO2BASS", juce::dontSendNotification);
     title.setFont (juce::Font (juce::FontOptions (22.0f, juce::Font::bold)));
     title.setColour (juce::Label::textColourId, kAccent);
     addAndMakeVisible (title);
@@ -427,18 +427,19 @@ Audio2BassEditor::Audio2BassEditor (Audio2BassProcessor& p)
 
     tabs.setTabBarDepth (30);
    #if A2B_SYNTH
-    tabs.addTab ("808 Main", tabCol, new ParamPage (s, {
-        "#808 Core",
-        "char", "sublvl", "subwave", "suboct", "o1lvl", "penv", "pdec", "glide", "gleg",
-        "drive", "subdrive", "cut", "res", "outgain",
-        "#Amp Envelope",
-        "atk", "dec", "sus", "rel", "nlen",
-        "#Low End",
-        "xon", "xover", "monosub", "mfreq" }), true);
+    tabs.addTab ("Main", tabCol, new ParamPage (s, {
+        "#Oscillators",
+        "o1wave", "o1lvl", "o2wave", "o2lvl", "o2det", "fm", "uni", "unid", "unis",
+        "#Filter / Envelope",
+        "ftype", "cut", "res", "fenv", "fdec", "fsus", "atk", "dec", "sus", "rel",
+        "#Voice / Output",
+        "vmode", "voices", "glide", "chmix", "outgain" }), true);
 
     tabs.addTab ("Keys / MIDI", tabCol, new ParamPage (s, {
-        "#Note Handling (mono, last-note priority)",
-        "retrig", "gleg", "glide", "nlen", "bend", "keysync",
+        "#Voices",
+        "vmode", "voices", "glide", "gleg", "nlen", "keysync", "phrand",
+        "#Controllers",
+        "bend", "mwvib", "mwcut",
         "#Pitch Mapping",
         "shift", "trans", "fine", "quant", "root", "scale",
         "#Velocity",
@@ -452,7 +453,7 @@ Audio2BassEditor::Audio2BassEditor (Audio2BassProcessor& p)
         "#Unison / Sub / Noise",
         "uni", "unid", "unis", "sublvl", "subwave", "suboct", "noise",
         "#Harmony / Analog",
-        "h1int", "h1lvl", "h2int", "h2lvl", "drift", "phrand", "hiss" }), true);
+        "h1int", "h1lvl", "h2int", "h2lvl", "drift", "hiss" }), true);
 
     tabs.addTab ("Filter / Env", tabCol, new ParamPage (s, {
         "#Filter",
@@ -477,6 +478,12 @@ Audio2BassEditor::Audio2BassEditor (Audio2BassProcessor& p)
         "boost", "eqf", "eqg", "eqq", "hp",
         "#Output",
         "outgain", "limit", "tplim", "ceil", "lrel" }), true);
+
+    tabs.addTab ("Bass", tabCol, new ParamPage (s, {
+        "#808 / Sub",
+        "char", "sublvl", "subwave", "suboct", "subdrive", "penv", "pdec",
+        "#Low End",
+        "xon", "xover", "monosub", "mfreq" }), true);
 
     tabs.addTab ("Timbre/Dyn", tabCol, new ParamPage (s, {
         "#Vocoder (modulator = the optional external input)",
@@ -568,7 +575,7 @@ void Audio2BassEditor::resized()
 {
     auto r = getLocalBounds();
     auto top = r.removeFromTop (44).reduced (10, 6);
-    title.setBounds (top.removeFromLeft (A2B_SYNTH ? 210 : 150));
+    title.setBounds (top.removeFromLeft (A2B_SYNTH ? 170 : 150));
     prevButton.setBounds (top.removeFromLeft (28));
     presetButton.setBounds (top.removeFromLeft (250).reduced (3, 0));
     nextButton.setBounds (top.removeFromLeft (28));

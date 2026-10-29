@@ -157,6 +157,27 @@ int main()
         check (ok, "generated values stay in valid ranges", bad);
     }
 
+    // általános célú (nem basszus) műfajok
+    {
+        const double padAtk = meanOf (genreIndex ("Warm Pad"), "atk"), pluckAtk = meanOf (genreIndex ("Pluck / Arp"), "atk");
+        const double superUni = meanOf (genreIndex ("Supersaw Lead"), "uni"), strUni = meanOf (genreIndex ("Strings"), "uni");
+        const double bellFm = meanOf (genreIndex ("Bells / Mallets"), "fm"), bellDec = meanOf (genreIndex ("Bells / Mallets"), "dec");
+        const double chipBits = meanOf (genreIndex ("Chiptune / 8-bit"), "bits"), orgH1 = meanOf (genreIndex ("Organ"), "h1int");
+        const double pluckSus = meanOf (genreIndex ("Pluck / Arp"), "sus"), ambRel = meanOf (genreIndex ("Ambient Wash"), "rel");
+        const double monoVm = meanOf (genreIndex ("Classic Mono Lead"), "vmode"), padVm = meanOf (genreIndex ("Warm Pad"), "vmode");
+        check (padAtk > 400 && pluckAtk < 3, "Pad: slow attack; Pluck: instant", fmt ("%.0f ms vs %.1f ms", padAtk, pluckAtk));
+        check (superUni >= 5 && strUni >= 4, "Supersaw and Strings use wide unison", fmt ("%.1f and %.1f voices", superUni, strUni));
+        check (bellFm > 0.3 && bellDec > 1200, "Bells: FM and a long ring", fmt ("fm %.2f, decay %.0f ms", bellFm, bellDec));
+        check (std::abs (orgH1 - 2.0) < 1e-6, "Organ: harmony voice an octave up");
+        check (chipBits <= 10 && pluckSus == 0 && ambRel > 2500, "Chiptune is crushed, Pluck has no sustain, Ambient releases slowly", fmt ("bits %.1f, rel %.0f ms", chipBits, ambRel));
+        check (monoVm >= 1.0 && padVm == 0.0, "Mono Lead plays mono/legato, Pad plays polyphonic", fmt ("vmode %.1f vs %.1f", monoVm, padVm));
+
+        // a basszus-műfajok az effekt alapértékeiből indulnak, az általános műfajok nem
+        auto bass = PresetGen::generate (genreIndex ("Trap 808"), "", 0.7f, 5), pad = PresetGen::generate (genreIndex ("Warm Pad"), "", 0.7f, 5);
+        check (bass.count ("monosub") && bass.count ("glide") && ! pad.count ("monosub") && ! pad.count ("sublvl"),
+               "bass genres carry the bass baseline, general genres do not");
+    }
+
     std::printf ("=== %s (%d failure%s) ===\n", failures == 0 ? "ALL PASSED" : "SOME FAILED", failures, failures == 1 ? "" : "s");
     return failures == 0 ? 0 : 1;
 }

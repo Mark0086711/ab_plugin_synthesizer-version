@@ -41,6 +41,14 @@ namespace a2b
             Rng rng (seed);
             ParamMap m;
 
+            // A basszus-műfajok az effekt alapértékeiből indulnak (a szintetizátor általános alapértékei mások),
+            // így a basszushangok mindkét pluginban ugyanúgy szólnak.
+            if (list[(size_t) genre].bass)
+            {
+                m["glide"] = 30.0f; m["sublvl"] = 0.5f; m["monosub"] = 1.0f; m["cut"] = 600.0f;
+                m["res"] = 1.2f; m["rel"] = 120.0f; m["drive"] = 0.25f;
+            }
+
             for (auto& s : list[(size_t) genre].specs)
             {
                 if (s.prob < 1.0f && rng.u() > s.prob) continue;
@@ -64,7 +72,7 @@ namespace a2b
 
     private:
         struct S { const char* id; float lo, hi, prob; std::vector<float> choices; };
-        struct Genre { const char* name; std::vector<S> specs; };
+        struct Genre { const char* name; std::vector<S> specs; bool bass = true; };
 
         struct Rng
         {
@@ -80,7 +88,7 @@ namespace a2b
         static bool isDiscrete (const std::string& id)
         {
             static const char* ids[] = { "o1wave","o2wave","subwave","suboct","dtype","dpos","lshape","lsync","pumprate","ftype",
-                                         "uni","o1oct","o1semi","o2oct","o2semi","shift","trans","bits","crate","h1int","h2int","bend" };
+                                         "uni","o1oct","o1semi","o2oct","o2semi","shift","trans","bits","crate","h1int","h2int","bend","vmode","voices" };
             for (auto* x : ids) if (id == x) return true;
             return false;
         }
@@ -188,6 +196,100 @@ namespace a2b
                     R ("drive", 0.2f, 0.5f), C ("dtype", { 0, 4 }), R ("fm", 0.1f, 0.4f), R ("o2lvl", 0, 0.3f, 0.5f), C ("o2oct", { 1 }),
                     R ("chmix", 0, 0.2f) } },
 
+                //---------------- általános célú (nem basszus) műfajok ----------------
+                { "Supersaw Lead", {
+                    C ("o1wave", { 0 }), R ("o1lvl", 0.7f, 0.9f), C ("o2wave", { 0 }), R ("o2lvl", 0.3f, 0.6f), R ("o2det", 6, 14),
+                    R ("uni", 5, 7), R ("unid", 20, 35), R ("unis", 0.7f, 1.0f), R ("cut", 5000, 11000), R ("res", 0.6f, 1.4f),
+                    R ("atk", 2, 10), R ("dec", 200, 500), R ("sus", 0.7f, 1.0f), R ("rel", 150, 400), C ("vmode", { 0, 2 }),
+                    R ("glide", 0, 40, 0.5f), R ("chmix", 0.2f, 0.4f), R ("width", 1.1f, 1.5f), R ("drive", 0, 0.15f),
+                    R ("lpitch", 3, 8, 0.6f), R ("lrate", 4.5f, 6.0f) } , false },
+
+                { "Classic Mono Lead", {
+                    C ("o1wave", { 0, 1 }), R ("o1lvl", 0.7f, 0.9f), C ("o2wave", { 0, 1 }), R ("o2lvl", 0.3f, 0.6f), R ("o2det", 5, 12),
+                    R ("cut", 2500, 6000), R ("res", 1, 3), R ("fenv", 1, 2.5f), R ("fdec", 150, 400), R ("fsus", 0.3f, 0.7f),
+                    R ("atk", 2, 6), R ("dec", 200, 400), R ("sus", 0.7f, 0.95f), R ("rel", 120, 250), C ("vmode", { 1, 2 }),
+                    R ("glide", 20, 80), C ("gleg", { 1, 0 }), R ("lpitch", 4, 8), R ("lrate", 4.5f, 6.0f), R ("drive", 0, 0.3f),
+                    C ("dtype", { 0, 1 }), R ("chmix", 0, 0.25f) }, false },
+
+                { "Pluck / Arp", {
+                    C ("o1wave", { 0, 1 }), R ("o1lvl", 0.7f, 0.9f), C ("o2wave", { 0, 1 }), R ("o2lvl", 0, 0.5f), R ("o2det", 5, 14),
+                    R ("cut", 1200, 3500), R ("res", 0.8f, 2.0f), R ("fenv", 2, 3.5f), R ("fdec", 80, 200), R ("fsus", 0, 0.1f),
+                    R ("atk", 1, 2), R ("dec", 150, 350), C ("sus", { 0 }), R ("rel", 80, 220), R ("chmix", 0.1f, 0.35f),
+                    C ("vmode", { 0 }), R ("uni", 1, 3), R ("unid", 5, 12) }, false },
+
+                { "Warm Pad", {
+                    C ("o1wave", { 0, 0, 2 }), R ("o1lvl", 0.5f, 0.7f), C ("o2wave", { 0, 2 }), R ("o2lvl", 0.4f, 0.6f), R ("o2det", 5, 10),
+                    R ("uni", 2, 4), R ("unid", 10, 22), R ("unis", 0.6f, 1.0f), R ("cut", 1500, 3500), R ("res", 0.6f, 1.2f),
+                    R ("atk", 400, 1000), R ("dec", 400, 800), R ("sus", 0.8f, 1.0f), R ("rel", 1200, 2600), R ("chmix", 0.35f, 0.55f),
+                    R ("chdepth", 0.4f, 0.6f), R ("drift", 0.2f, 0.5f), R ("lcut", 0.2f, 0.5f), R ("lrate", 0.1f, 0.3f), C ("lshape", { 0 }),
+                    C ("vmode", { 0 }), R ("voices", 8, 12) }, false },
+
+                { "Dark Pad", {
+                    C ("o1wave", { 0 }), R ("o1lvl", 0.6f, 0.8f), C ("o2wave", { 1 }), R ("o2lvl", 0.3f, 0.5f), R ("uni", 3, 5), R ("unid", 15, 28),
+                    R ("cut", 500, 1100), R ("res", 1, 2), R ("lcut", 0.6f, 1.2f), R ("lrate", 0.08f, 0.25f), R ("atk", 700, 1400),
+                    R ("sus", 0.9f, 1.0f), R ("rel", 1800, 3000), R ("chmix", 0.25f, 0.45f), R ("drift", 0.3f, 0.6f), R ("hiss", 0.05f, 0.2f, 0.5f),
+                    C ("vmode", { 0 }) }, false },
+
+                { "Strings", {
+                    C ("o1wave", { 0 }), R ("o1lvl", 0.6f, 0.8f), R ("uni", 4, 6), R ("unid", 14, 24), R ("unis", 0.8f, 1.0f),
+                    R ("cut", 2500, 4500), R ("res", 0.5f, 0.9f), R ("atk", 250, 500), R ("dec", 400, 700), R ("sus", 0.8f, 0.95f),
+                    R ("rel", 500, 1000), R ("chmix", 0.4f, 0.6f), R ("chdepth", 0.5f, 0.7f), R ("lpitch", 5, 10), R ("lrate", 4.5f, 5.5f),
+                    R ("drift", 0.2f, 0.4f), C ("vmode", { 0 }) }, false },
+
+                { "Brass", {
+                    C ("o1wave", { 0 }), R ("o1lvl", 0.7f, 0.9f), C ("o2wave", { 0 }), R ("o2lvl", 0.4f, 0.6f), R ("o2det", 6, 12),
+                    R ("uni", 2, 3), R ("unid", 8, 14), R ("cut", 700, 1400), R ("res", 0.8f, 1.5f), R ("fenv", 2.4f, 3.2f),
+                    R ("fdec", 180, 320), R ("fsus", 0.4f, 0.6f), R ("atk", 40, 120), R ("dec", 150, 300), R ("sus", 0.75f, 0.9f),
+                    R ("rel", 120, 220), R ("drive", 0.1f, 0.3f), R ("lpitch", 4, 7), R ("lrate", 5.0f, 5.5f), R ("velcut", 0.4f, 0.7f),
+                    R ("chmix", 0.1f, 0.25f), C ("vmode", { 0 }) }, false },
+
+                { "FM Electric Piano", {
+                    C ("o1wave", { 3 }), R ("o1lvl", 0.7f, 0.9f), C ("o2wave", { 3 }), C ("o2oct", { 1 }), R ("fm", 0.15f, 0.35f),
+                    R ("cut", 9000, 14000), R ("atk", 1, 2), R ("dec", 700, 1600), R ("sus", 0.05f, 0.25f), R ("rel", 250, 450),
+                    R ("velamp", 0.7f, 1.0f), R ("velcut", 0.2f, 0.5f), R ("chmix", 0.15f, 0.3f), R ("tatk", 0.2f, 0.5f, 0.6f),
+                    R ("lamp", 0.1f, 0.25f, 0.5f), R ("lrate", 4.0f, 5.5f), C ("vmode", { 0 }) }, false },
+
+                { "Organ", {
+                    C ("o1wave", { 3 }), R ("o1lvl", 0.5f, 0.7f), C ("o2wave", { 3 }), C ("o2oct", { 1 }), R ("o2lvl", 0.3f, 0.5f),
+                    C ("h1int", { 2 }), R ("h1lvl", 0.3f, 0.6f), C ("h2int", { 3, 2, 6 }), R ("h2lvl", 0.2f, 0.4f),
+                    R ("atk", 2, 6), R ("dec", 10, 30), C ("sus", { 1 }), R ("rel", 30, 70), R ("lamp", 0.1f, 0.2f), R ("lrate", 5.5f, 7.5f),
+                    R ("chmix", 0.25f, 0.4f), R ("lpitch", 3, 6), R ("drive", 0, 0.2f, 0.5f), R ("velamp", 0, 0.2f), C ("vmode", { 0 }) }, false },
+
+                { "Bells / Mallets", {
+                    C ("o1wave", { 3 }), R ("o1lvl", 0.7f, 0.9f), C ("o2wave", { 3 }), C ("o2oct", { 1, 2 }), C ("o2semi", { 0, 3, 4, 7 }),
+                    R ("fm", 0.3f, 0.6f), R ("cut", 10000, 15000), C ("atk", { 1 }), R ("dec", 1200, 2600), C ("sus", { 0 }),
+                    R ("rel", 800, 1800), R ("chmix", 0.25f, 0.45f), R ("chdepth", 0.3f, 0.5f), R ("velcut", 0.1f, 0.3f),
+                    R ("hiss", 0, 0.05f, 0.5f), C ("vmode", { 0 }) }, false },
+
+                { "Chiptune / 8-bit", {
+                    C ("o1wave", { 1, 2, 1 }), R ("o1pw", 0.125f, 0.5f), R ("o1lvl", 0.8f, 1.0f), C ("o2wave", { 1, 2 }), R ("o2lvl", 0, 0.4f),
+                    R ("cut", 12000, 16000), R ("res", 0.5f, 0.9f), C ("f24", { 0 }), C ("atk", { 1 }), R ("dec", 50, 200), R ("sus", 0.5f, 0.9f),
+                    R ("rel", 20, 60), R ("bits", 6, 10), R ("crate", 2, 5), C ("vmode", { 1, 2, 0 }), C ("voices", { 4 }),
+                    R ("lpw", 0.3f, 0.6f, 0.4f), R ("lrate", 4, 7), C ("drive", { 0 }) }, false },
+
+                { "Acid Lead", {
+                    C ("o1wave", { 0, 1 }), R ("o1lvl", 0.9f, 1.0f), R ("res", 5, 9), R ("cut", 600, 1800), R ("fenv", 2.5f, 4.0f),
+                    R ("fdec", 120, 260), R ("fsus", 0, 0.2f), C ("atk", { 1 }), R ("dec", 150, 260), R ("sus", 0.2f, 0.5f), R ("rel", 60, 140),
+                    C ("vmode", { 1 }), R ("glide", 40, 90), C ("gleg", { 0 }), R ("drive", 0.3f, 0.6f), C ("dtype", { 1, 3, 6 }) }, false },
+
+                { "Trance Pluck", {
+                    C ("o1wave", { 0 }), R ("o1lvl", 0.7f, 0.9f), R ("uni", 5, 7), R ("unid", 22, 35), R ("unis", 0.8f, 1.0f),
+                    R ("cut", 2500, 5000), R ("res", 0.7f, 1.4f), R ("fenv", 1.5f, 3.0f), R ("fdec", 90, 180), R ("fsus", 0.3f, 0.5f),
+                    R ("atk", 1, 3), R ("dec", 180, 300), R ("sus", 0.3f, 0.5f), R ("rel", 120, 200), R ("chmix", 0.25f, 0.4f),
+                    R ("pump", 0.3f, 0.6f, 0.5f), C ("pumprate", { 2 }), C ("vmode", { 0 }) }, false },
+
+                { "Ambient Wash", {
+                    C ("o1wave", { 2, 3 }), R ("o1lvl", 0.5f, 0.7f), C ("o2wave", { 2, 3 }), R ("o2lvl", 0.4f, 0.7f), R ("o2det", 4, 8),
+                    R ("uni", 3, 5), R ("unid", 18, 30), R ("atk", 900, 1600), R ("dec", 800, 1500), C ("sus", { 1 }), R ("rel", 2500, 3000),
+                    R ("cut", 4000, 9000), R ("chmix", 0.5f, 0.7f), R ("chdepth", 0.5f, 0.8f), R ("drift", 0.4f, 0.8f), R ("hiss", 0.05f, 0.15f),
+                    R ("lcut", 0.3f, 0.7f), R ("lrate", 0.08f, 0.2f), C ("vmode", { 0 }) }, false },
+
+                { "Riser / FX", {
+                    C ("o1wave", { 0 }), R ("o1lvl", 0.6f, 0.9f), R ("uni", 5, 7), R ("unid", 35, 55), R ("cut", 300, 700), R ("res", 1.5f, 3.0f),
+                    R ("fenv", 3.5f, 5.0f), R ("fdec", 1500, 2000), R ("fsus", 0.9f, 1.0f), R ("atk", 1000, 1600), C ("sus", { 1 }),
+                    R ("rel", 2000, 3000), R ("noise", 0.1f, 0.3f), R ("chmix", 0.4f, 0.6f), R ("lcut", 0.5f, 1.2f), R ("lrate", 0.1f, 0.4f),
+                    C ("vmode", { 0 }) }, false },
+
                 { "Wild / Experimental", {
                     C ("o1wave", { 0, 1, 2, 3, 4 }), R ("o1lvl", 0.3f, 1.0f), C ("o2wave", { 0, 1, 2, 3, 4 }), R ("o2lvl", 0, 0.9f), R ("o2det", -50, 50),
                     R ("fm", 0, 0.8f, 0.6f), R ("uni", 1, 7), R ("unid", 0, 50), R ("sublvl", 0.3f, 1.0f), R ("cut", 150, 8000), R ("res", 0.6f, 7),
@@ -195,7 +297,7 @@ namespace a2b
                     R ("drive", 0, 0.9f), C ("dtype", { 0, 1, 2, 3, 4, 5, 6 }), R ("bits", 6, 16, 0.4f), R ("crate", 1, 8, 0.4f), R ("chmix", 0, 0.6f),
                     R ("penv", -12, 24, 0.6f), R ("pdec", 20, 400), R ("atk", 1, 120), R ("dec", 100, 1500), R ("sus", 0, 1), R ("rel", 50, 1500),
                     R ("glide", 0, 250), R ("drift", 0, 1, 0.5f), R ("hiss", 0, 0.5f, 0.4f), C ("mbon", { 0, 1 }), R ("mbd1", 0, 0.6f, 0.5f),
-                    R ("mbd3", 0, 0.6f, 0.5f), R ("ott", 0, 0.6f, 0.5f), R ("tatk", -0.5f, 0.6f, 0.5f), C ("h1int", { 0, 1, 2, 3, 4, 5, 6, 7, 8 }), R ("h1lvl", 0.2f, 0.8f) } },
+                    R ("mbd3", 0, 0.6f, 0.5f), R ("ott", 0, 0.6f, 0.5f), R ("tatk", -0.5f, 0.6f, 0.5f), C ("h1int", { 0, 1, 2, 3, 4, 5, 6, 7, 8 }), R ("h1lvl", 0.2f, 0.8f) }, false },
             };
             return g;
         }

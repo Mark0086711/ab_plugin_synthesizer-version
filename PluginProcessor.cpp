@@ -43,6 +43,20 @@ namespace
     juce::String categoryOf (const juce::String& n)
     {
         if (n.startsWith ("Original")) return "Original";
+        static const char* lead[]  = { "Saw Lead", "Supersaw Lead", "Square Lead", "FM Lead", "Acid Lead", "Trance Pluck Lead", "Retro Poly Lead" };
+        static const char* pad[]   = { "Warm Pad", "Glass Pad", "Strings Ensemble", "Dark Pad", "Choir Pad", "Ambient Wash" };
+        static const char* keys[]  = { "Init", "FM Electric Piano", "Clav", "Organ", "Soft Rhodes", "Digital Keys" };
+        static const char* pluck[] = { "Pluck Synth", "Marimba", "Arp Pluck", "Kalimba" };
+        static const char* bell[]  = { "FM Bell", "Glass Bell", "Music Box" };
+        static const char* brass[] = { "Brass Section", "Synth Brass Stab" };
+        static const char* fx[]    = { "Riser Drone", "Laser Zap", "Noise Sweep" };
+        for (auto* x : lead)  if (n == x) return "Lead";
+        for (auto* x : pad)   if (n == x) return "Pad";
+        for (auto* x : keys)  if (n == x) return "Keys";
+        for (auto* x : pluck) if (n == x) return "Pluck";
+        for (auto* x : bell)  if (n == x) return "Bell-FM";
+        for (auto* x : brass) if (n == x) return "Brass";
+        for (auto* x : fx)    if (n == x) return "FX";
         static const char* c808[]  = { "Deep 808", "Punchy 808", "Long Glide 808", "Short Kick 808", "Distorted Trap 808", "Saturated 808", "Hard Clip 808", "808 Punch" };
         static const char* sub[]   = { "Init Sub Bass", "Clean Sub", "Smooth Sub", "Wide Chorus Sub" };
         static const char* reese[] = { "Reese Bass", "Dark Reese Bass" };
@@ -54,6 +68,12 @@ namespace
         for (auto* x : wob)   if (n == x) return "Wobble-FM";
         for (auto* x : mid)   if (n == x) return "Mid-Wide";
         return "Pluck-Acid";
+    }
+
+    // Az általános célú (nem basszus) kategóriák: ezek csak a szintetizátorban vannak
+    bool isGeneralCategory (const juce::String& c)
+    {
+        return c == "Lead" || c == "Pad" || c == "Keys" || c == "Pluck" || c == "Bell-FM" || c == "Brass" || c == "FX";
     }
 
     // ---------------- Presetek ----------------
@@ -81,6 +101,50 @@ namespace
                                        {"cut",5000.f},{"res",1.f},{"atk",3.f},{"sus",1.f},{"rel",80.f} } },
             { "Original Dirty",      { {"srclvl",1.f},{"o1lvl",0.f},{"sublvl",0.2f},{"shift",-1.f},{"follow",1.f},{"dtype",4.f},{"drive",0.5f},
                                        {"cut",3000.f},{"res",1.2f},{"atk",2.f},{"sus",1.f},{"rel",70.f} } },
+
+            // ---------------- Szintetizátor: lead ----------------
+            { "Saw Lead",          { {"o1wave",0.f},{"o1lvl",0.8f},{"o2wave",0.f},{"o2lvl",0.6f},{"o2det",9.f},{"cut",5000.f},{"res",1.2f},{"atk",4.f},{"dec",300.f},{"sus",0.8f},{"rel",200.f},{"vmode",2.f},{"glide",40.f},{"lpitch",6.f},{"lrate",5.5f},{"chmix",0.2f} } },
+            { "Supersaw Lead",     { {"o1wave",0.f},{"o1lvl",0.8f},{"uni",7.f},{"unid",28.f},{"unis",0.9f},{"cut",7000.f},{"res",0.8f},{"atk",6.f},{"dec",300.f},{"sus",0.85f},{"rel",250.f},{"chmix",0.3f},{"width",1.2f},{"drive",0.1f} } },
+            { "Square Lead",       { {"o1wave",1.f},{"o1pw",0.45f},{"o1lvl",0.8f},{"o2wave",1.f},{"o2lvl",0.3f},{"o2oct",1.f},{"cut",4500.f},{"res",1.5f},{"atk",3.f},{"sus",0.8f},{"rel",180.f},{"vmode",2.f},{"glide",30.f},{"lpw",0.2f},{"lrate",4.5f} } },
+            { "FM Lead",           { {"fm",0.45f},{"o1wave",0.f},{"o1lvl",0.8f},{"o2wave",3.f},{"o2oct",1.f},{"cut",9000.f},{"res",1.f},{"atk",3.f},{"dec",400.f},{"sus",0.7f},{"rel",220.f},{"lcut",0.4f},{"lrate",4.f},{"vmode",2.f} } },
+            { "Acid Lead",         { {"o1wave",0.f},{"res",6.f},{"cut",600.f},{"fenv",3.f},{"fdec",200.f},{"fsus",0.1f},{"dec",180.f},{"sus",0.4f},{"rel",80.f},{"vmode",1.f},{"glide",50.f},{"gleg",0.f},{"drive",0.3f},{"dtype",1.f} } },
+            { "Trance Pluck Lead", { {"o1wave",0.f},{"o1lvl",0.8f},{"o2wave",0.f},{"o2lvl",0.6f},{"o2det",14.f},{"uni",3.f},{"unid",14.f},{"cut",3500.f},{"fenv",2.5f},{"fdec",160.f},{"fsus",0.3f},{"atk",1.f},{"dec",250.f},{"sus",0.3f},{"rel",200.f},{"chmix",0.25f} } },
+            { "Retro Poly Lead",   { {"o1wave",0.f},{"o2wave",0.f},{"o2lvl",0.5f},{"o2det",8.f},{"cut",3500.f},{"res",1.f},{"atk",5.f},{"dec",400.f},{"sus",0.7f},{"rel",300.f},{"chmix",0.4f},{"chdepth",0.4f},{"drift",0.4f},{"lpitch",8.f},{"lrate",5.f} } },
+
+            // ---------------- Szintetizátor: pad ----------------
+            { "Warm Pad",          { {"o1wave",0.f},{"o1lvl",0.6f},{"o2wave",0.f},{"o2lvl",0.5f},{"o2det",7.f},{"uni",3.f},{"unid",14.f},{"unis",0.8f},{"cut",2200.f},{"res",0.8f},{"atk",700.f},{"dec",600.f},{"sus",0.9f},{"rel",1500.f},{"chmix",0.45f},{"chdepth",0.5f},{"drift",0.3f},{"lcut",0.3f},{"lrate",0.2f} } },
+            { "Glass Pad",         { {"o1wave",3.f},{"o1lvl",0.6f},{"o2wave",2.f},{"o2lvl",0.5f},{"o2oct",1.f},{"o2det",6.f},{"fm",0.1f},{"cut",9000.f},{"atk",500.f},{"sus",1.f},{"rel",1800.f},{"chmix",0.5f},{"hiss",0.05f} } },
+            { "Strings Ensemble",  { {"o1wave",0.f},{"uni",5.f},{"unid",18.f},{"unis",1.f},{"cut",3500.f},{"res",0.6f},{"atk",350.f},{"dec",500.f},{"sus",0.85f},{"rel",700.f},{"chmix",0.5f},{"chdepth",0.6f},{"lpitch",8.f},{"lrate",5.f},{"drift",0.3f} } },
+            { "Dark Pad",          { {"o1wave",0.f},{"o2wave",1.f},{"o2lvl",0.4f},{"uni",3.f},{"unid",20.f},{"cut",700.f},{"res",1.2f},{"lcut",0.8f},{"lrate",0.15f},{"atk",900.f},{"sus",1.f},{"rel",2200.f},{"chmix",0.3f} } },
+            { "Choir Pad",         { {"o1wave",2.f},{"o2wave",0.f},{"o2lvl",0.4f},{"uni",3.f},{"unid",10.f},{"cut",1800.f},{"res",2.5f},{"atk",600.f},{"sus",0.9f},{"rel",1500.f},{"chmix",0.4f},{"drift",0.5f},{"lrate",0.3f},{"lcut",0.5f} } },
+            { "Ambient Wash",      { {"o1wave",3.f},{"o2wave",2.f},{"o2lvl",0.6f},{"o2det",5.f},{"uni",4.f},{"unid",22.f},{"atk",900.f},{"dec",800.f},{"sus",1.f},{"rel",2800.f},{"cut",5000.f},{"chmix",0.6f},{"chdepth",0.7f},{"drift",0.6f},{"lcut",0.5f},{"lrate",0.1f} } },
+
+            // ---------------- Szintetizátor: billentyűs ----------------
+            { "FM Electric Piano", { {"fm",0.22f},{"o1wave",3.f},{"o1lvl",0.8f},{"o2wave",3.f},{"o2oct",1.f},{"cut",12000.f},{"atk",1.f},{"dec",1200.f},{"sus",0.15f},{"rel",300.f},{"velamp",0.8f},{"velcut",0.3f},{"chmix",0.2f},{"tatk",0.3f} } },
+            { "Clav",              { {"o1wave",1.f},{"o1pw",0.3f},{"o1lvl",0.9f},{"cut",2500.f},{"res",1.5f},{"fenv",2.5f},{"fdec",80.f},{"fsus",0.2f},{"atk",1.f},{"dec",200.f},{"sus",0.1f},{"rel",90.f},{"velcut",0.5f} } },
+            { "Organ",             { {"o1wave",3.f},{"o1lvl",0.6f},{"o2wave",3.f},{"o2oct",1.f},{"o2lvl",0.4f},{"h1int",2.f},{"h1lvl",0.5f},{"h2int",3.f},{"h2lvl",0.3f},{"atk",3.f},{"dec",10.f},{"sus",1.f},{"rel",40.f},{"lpitch",4.f},{"lrate",6.5f},{"lamp",0.15f},{"chmix",0.3f},{"velamp",0.1f} } },
+            { "Soft Rhodes",       { {"o1wave",2.f},{"o1lvl",0.8f},{"o2wave",3.f},{"o2oct",1.f},{"o2lvl",0.3f},{"fm",0.08f},{"cut",6000.f},{"atk",2.f},{"dec",1400.f},{"sus",0.2f},{"rel",400.f},{"chmix",0.3f},{"velcut",0.4f} } },
+            { "Digital Keys",      { {"o1wave",1.f},{"o1lvl",0.7f},{"o2wave",3.f},{"o2oct",1.f},{"o2lvl",0.4f},{"fm",0.12f},{"cut",8000.f},{"atk",1.f},{"dec",700.f},{"sus",0.2f},{"rel",300.f},{"chmix",0.2f} } },
+
+            // ---------------- Szintetizátor: pluck és arp ----------------
+            { "Pluck Synth",       { {"o1wave",0.f},{"o2wave",1.f},{"o2lvl",0.5f},{"o2det",10.f},{"cut",1800.f},{"res",1.2f},{"fenv",3.f},{"fdec",140.f},{"fsus",0.f},{"atk",1.f},{"dec",260.f},{"sus",0.f},{"rel",160.f},{"chmix",0.2f} } },
+            { "Marimba",           { {"o1wave",3.f},{"o2wave",3.f},{"o2oct",2.f},{"o2lvl",0.2f},{"atk",1.f},{"dec",420.f},{"sus",0.f},{"rel",120.f},{"cut",9000.f},{"penv",2.f},{"pdec",25.f} } },
+            { "Arp Pluck",         { {"o1wave",0.f},{"uni",2.f},{"unid",8.f},{"cut",2500.f},{"fenv",2.2f},{"fdec",110.f},{"fsus",0.05f},{"atk",1.f},{"dec",200.f},{"sus",0.f},{"rel",120.f},{"chmix",0.25f} } },
+            { "Kalimba",           { {"o1wave",3.f},{"o2wave",2.f},{"o2oct",1.f},{"o2lvl",0.3f},{"atk",1.f},{"dec",700.f},{"sus",0.f},{"rel",300.f},{"cut",10000.f},{"tatk",0.2f} } },
+
+            // ---------------- Szintetizátor: harang / FM ----------------
+            { "FM Bell",           { {"fm",0.5f},{"o1wave",3.f},{"o2wave",3.f},{"o2oct",1.f},{"o2semi",7.f},{"atk",1.f},{"dec",2200.f},{"sus",0.f},{"rel",1200.f},{"cut",14000.f},{"chmix",0.35f},{"chdepth",0.4f},{"velcut",0.2f} } },
+            { "Glass Bell",        { {"fm",0.35f},{"o1wave",3.f},{"o2wave",3.f},{"o2oct",2.f},{"o2semi",3.f},{"atk",1.f},{"dec",1800.f},{"sus",0.f},{"rel",1500.f},{"cut",15000.f},{"hiss",0.02f},{"chmix",0.3f} } },
+            { "Music Box",         { {"o1wave",3.f},{"o2wave",3.f},{"o2oct",2.f},{"o2lvl",0.4f},{"fm",0.1f},{"atk",1.f},{"dec",900.f},{"sus",0.f},{"rel",600.f},{"cut",12000.f} } },
+
+            // ---------------- Szintetizátor: rézfúvós ----------------
+            { "Brass Section",     { {"o1wave",0.f},{"uni",3.f},{"unid",12.f},{"cut",900.f},{"fenv",2.8f},{"fdec",250.f},{"fsus",0.5f},{"res",1.f},{"atk",80.f},{"dec",200.f},{"sus",0.8f},{"rel",160.f},{"lpitch",5.f},{"lrate",5.2f},{"drive",0.15f},{"chmix",0.15f},{"velcut",0.6f} } },
+            { "Synth Brass Stab",  { {"o1wave",0.f},{"o2wave",0.f},{"o2lvl",0.6f},{"o2det",12.f},{"cut",1200.f},{"fenv",3.f},{"fdec",180.f},{"fsus",0.35f},{"atk",6.f},{"dec",350.f},{"sus",0.4f},{"rel",150.f},{"chmix",0.3f} } },
+
+            // ---------------- Szintetizátor: FX ----------------
+            { "Riser Drone",       { {"o1wave",0.f},{"uni",5.f},{"unid",40.f},{"unis",1.f},{"cut",400.f},{"fenv",4.5f},{"fdec",2000.f},{"fsus",1.f},{"res",2.f},{"atk",1100.f},{"sus",1.f},{"rel",2500.f},{"chmix",0.5f},{"noise",0.15f},{"lcut",1.f},{"lrate",0.3f} } },
+            { "Laser Zap",         { {"o1wave",0.f},{"penv",36.f},{"pdec",90.f},{"atk",1.f},{"dec",250.f},{"sus",0.f},{"rel",100.f},{"res",3.f},{"fenv",3.f},{"fdec",150.f},{"dtype",1.f},{"drive",0.3f} } },
+            { "Noise Sweep",       { {"noise",0.6f},{"o1lvl",0.1f},{"cut",800.f},{"res",4.f},{"fenv",3.5f},{"fdec",1200.f},{"fsus",0.f},{"atk",400.f},{"dec",1500.f},{"sus",0.f},{"rel",800.f} } },
 
             // ---------------- Trap / 808 bank ----------------
             { "Clean Sub",        { {"o1lvl",0.f},{"sublvl",1.f},{"subwave",0.f},{"cut",4000.f},{"res",0.8f},{"drive",0.f},{"subdrive",0.f},
@@ -131,8 +195,14 @@ namespace
         {
             std::vector<PresetDef> out;
             for (auto& d : src)
-                if (! (A2B_SYNTH && juce::String (d.name).startsWith ("Original")))
-                    out.push_back (d);
+            {
+                const juce::String nm (d.name);
+                if (A2B_SYNTH && nm.startsWith ("Original")) continue;                          // az Original réteghez bemenet kell
+                if (! A2B_SYNTH && isGeneralCategory (categoryOf (nm))) continue;              // az általános presetek a szintetizátorhoz valók
+                PresetDef def = d;
+                if (A2B_SYNTH && nm == "Init Sub Bass") def.name = "Init";
+                out.push_back (def);
+            }
             return out;
         } (all);
         return list;
@@ -185,7 +255,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Audio2BassProcessor::createL
     B ("quant", "Quantize",       false);
     C ("root",  "Root Note",      { "C","C#","D","D#","E","F","F#","G","G#","A","A#","B" }, 9);
     C ("scale", "Scale",          { "Chromatic","Major","Minor","Dorian","Phrygian","Minor Pent.","Harm. Minor" }, 2);
-    F ("glide", "Glide (ms)",     0.f, 500.f, 30.f, 0.5f);
+    F ("glide", "Glide (ms)",     0.f, 500.f, A2B_SYNTH ? 0.f : 30.f, 0.5f);
     F ("thresh","Gate Thr (dB)",  -70.f, -10.f, -45.f);
     F ("hold",  "Gate Hold (ms)", 0.f, 400.f, 60.f);
 
@@ -210,21 +280,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout Audio2BassProcessor::createL
     I ("uni",   "Unison Voices",  1, 7, 1);
     F ("unid",  "Unison Detune",  0.f, 60.f, 15.f);
     F ("unis",  "Unison Spread",  0.f, 1.f, 0.5f);
-    F ("sublvl","Sub Level",      0.f, 1.f, 0.5f);
+    F ("sublvl","Sub Level",      0.f, 1.f, A2B_SYNTH ? 0.f : 0.5f);
     C ("subwave","Sub Wave",      { "Sine", "Triangle", "Square" }, 0);
     C ("suboct","Sub Octave",     { "-1 Oct", "-2 Oct" }, 0);
     F ("noise", "Noise",          0.f, 1.f, 0.f);
     F ("subdrive","Sub Drive",    0.f, 1.f, 0.f);
     B ("xon",   "Layer Split",    false);
     F ("xover", "Crossover (Hz)", 40.f, 400.f, 130.f, 0.5f);
-    B ("monosub","Mono Low End",  true);
+    B ("monosub","Mono Low End",  ! A2B_SYNTH);
     F ("mfreq", "Mono Below (Hz)",40.f, 300.f, 120.f, 0.5f);
 
     // --- Filter ---
     C ("ftype", "Filter Type",    { "Lowpass", "Bandpass", "Highpass" }, 0);
     B ("f24",   "Filter 24 dB",   true);
-    F ("cut",   "Cutoff (Hz)",    20.f, 16000.f, 600.f, 0.3f);
-    F ("res",   "Resonance",      0.5f, 10.f, 1.2f);
+    F ("cut",   "Cutoff (Hz)",    20.f, 16000.f, A2B_SYNTH ? 8000.f : 600.f, 0.3f);
+    F ("res",   "Resonance",      0.5f, 10.f, A2B_SYNTH ? 0.9f : 1.2f);
     F ("fkey",  "Key Track",      0.f, 1.f, 0.f);
     F ("fenv",  "Filt Env Amt",   -5.f, 5.f, 0.f);
     F ("fdec",  "Filt Env Decay", 5.f, 2000.f, 250.f, 0.5f);
@@ -235,7 +305,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Audio2BassProcessor::createL
     F ("atk",   "Attack (ms)",    1.f, 2000.f, 3.f, 0.4f);
     F ("dec",   "Decay (ms)",     5.f, 3000.f, 200.f, 0.4f);
     F ("sus",   "Sustain",        0.f, 1.f, 1.f);
-    F ("rel",   "Release (ms)",   5.f, 3000.f, 120.f, 0.4f);
+    F ("rel",   "Release (ms)",   5.f, 3000.f, A2B_SYNTH ? 250.f : 120.f, 0.4f);
     F ("follow","Dynamics Follow",0.f, 1.f, 0.3f);
     B ("keysync","Key Sync",      false);
     B ("retrig","Retrig on Pitch",true);
@@ -259,7 +329,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Audio2BassProcessor::createL
     // --- Distortion ---
     C ("dpos",  "Dist Position",  { "Pre-Filter", "Post-Filter" }, 1);
     C ("dtype", "Dist Type",      { "Soft", "Hard", "Fold", "Asym", "Tube", "Tape", "Diode" }, 0);
-    F ("drive", "Drive",          0.f, 1.f, 0.25f);
+    F ("drive", "Drive",          0.f, 1.f, A2B_SYNTH ? 0.f : 0.25f);
     I ("bits",  "Bit Depth",      4, 16, 16);
     I ("crate", "Rate Reduce",    1, 32, 1);
     F ("tone",  "Tone (Hz)",      200.f, 20000.f, 20000.f, 0.4f);
@@ -330,9 +400,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout Audio2BassProcessor::createL
     F ("velcut","Velocity > Cutoff",0.f, 1.f, 0.f);
     F ("velpenv","Velocity > Drop",0.f, 1.f, 0.f);
 
+    // --- Hangkezelés / mod wheel (szintetizátor) ---
+    C ("vmode", "Voice Mode",      { "Poly", "Mono", "Legato" }, 0);
+    I ("voices","Max Voices",      1, 16, 8);
+    F ("mwvib", "Mod Wheel > Vibrato", 0.f, 1.f, 0.3f);
+    F ("mwcut", "Mod Wheel > Cutoff",  0.f, 1.f, 0.f);
+
     // --- Output ---
     F ("mix",   "Mix",            0.f, 1.f, 1.f);
-    F ("outgain","Output (dB)",   -24.f, 6.f, -3.f);
+    F ("outgain","Output (dB)",   -24.f, 6.f, A2B_SYNTH ? -6.f : -3.f);
     B ("limit", "Soft Limiter",   true);
 
     return { p.begin(), p.end() };
@@ -449,6 +525,14 @@ void Audio2BassProcessor::timerCallback()
         // A régi (808/basszus) presetek megtartják az oktávba hajtogatást és a skálára kvantálást;
         // az "Init" és az "Original" presetek pontosan követik az eredeti hangmagasságot.
         const juce::String nm (def.name);
+        if (A2B_SYNTH && ! isGeneralCategory (categoryOf (nm)))
+        {
+            // a basszus-presetek az effekt alapértékeiből indulnak, így a szintetizátorban ugyanúgy szólnak
+            static const std::pair<const char*, float> bassBase[] = { { "glide", 30.f }, { "sublvl", 0.5f }, { "monosub", 1.f },
+                                                                      { "cut", 600.f }, { "res", 1.2f }, { "rel", 120.f }, { "drive", 0.25f } };
+            for (auto& kv : bassBase)
+                if (auto* r = apvts.getParameter (kv.first)) r->setValueNotifyingHost (r->convertTo0to1 (kv.second));
+        }
         if (! A2B_SYNTH && ! nm.startsWith ("Original") && nm != "Init Sub Bass")
         {
             if (auto* r = apvts.getParameter ("fold"))  r->setValueNotifyingHost (1.0f);
@@ -466,9 +550,18 @@ void Audio2BassProcessor::timerCallback()
     duckTarget.store (1.0f);
 }
 
+int Audio2BassProcessor::countInvalidPresetIds() const
+{
+    int bad = 0;
+    for (auto& def : presets())
+        for (auto& kv : def.values)
+            if (apvts.getParameter (kv.first) == nullptr) ++bad;
+    return bad;
+}
+
 juce::StringArray Audio2BassProcessor::getCategories()
 {
-    return { "808", "Sub", "Reese", "Wobble-FM", "Mid-Wide", "Pluck-Acid", "Original", "User" };
+    return { "Lead", "Pad", "Keys", "Pluck", "Bell-FM", "Brass", "FX", "808", "Sub", "Reese", "Wobble-FM", "Mid-Wide", "Pluck-Acid", "Original", "User" };
 }
 
 juce::String Audio2BassProcessor::getCurrentPresetName()
@@ -776,7 +869,7 @@ void Audio2BassProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
     vocoder.prepare (sr);
     srcShifter.prepare (sr);
-    heldCount = 0; curNote = -1; curVel = 1.0f; bendCur = bendTarget = 0.0f; midiNewNote = false;
+    synth.prepare (sr);
     srcInHz = 110.0f;
     multiband.prepare (sr);
     transient.prepare (sr);
@@ -878,6 +971,7 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
     // ---- paraméterek ----
     const float bendRange = P ("bend");
     const float velAmt = P ("velamp"), velCut = P ("velcut"), velPenv = P ("velpenv");
+    juce::ignoreUnused (velAmt, velCut, velPenv);
     const float bendCoef = 1.0f - std::exp (-1.0f / (0.005f * (float) sr));
     juce::ignoreUnused (bendRange, bendCoef);
     const float charM = P ("char");   // 808 Character makró: több telítés, több felharmonikus, erősebb pitch drop, világosabb hang
@@ -1140,82 +1234,14 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
     auto* wr = wetBuf.getWritePointer (1);
     float inPk = 0.0f, outPk = 0.0f;
 
-   #if A2B_SYNTH
-    // MIDI hang -> cél hangmagasság (skálára zárás és oktáveltolás opcionális)
-    auto noteFreqLog2 = [&] (int note)
-    {
-        float f = 440.0f * std::exp2 ((float) (note - 69) / 12.0f);
-        if (quant) f = quantizeToScale (f, root, scaleI);
-        f *= std::exp2 ((float) shift);
-        f = juce::jlimit (18.0f, 4000.0f, f);
-        return std::log2 (f);
-    };
-
-    // Monofonikus, "utoljára játszott hang" prioritású hangkezelés; a felengedett hang után a
-    // még tartott hangra tér vissza (legato).
-    auto removeHeld = [&] (int note)
-    {
-        for (int k = 0; k < heldCount; ++k)
-            if (heldNote[k] == note)
-            {
-                for (int j = k; j < heldCount - 1; ++j) { heldNote[j] = heldNote[j + 1]; heldVel[j] = heldVel[j + 1]; }
-                --heldCount;
-                return true;
-            }
-        return false;
-    };
-    auto noteOn = [&] (int note, int vel)
-    {
-        const bool wasEmpty = heldCount == 0;
-        removeHeld (note);
-        if (heldCount >= 16) { for (int j = 0; j < 15; ++j) { heldNote[j] = heldNote[j + 1]; heldVel[j] = heldVel[j + 1]; } --heldCount; }
-        heldNote[heldCount] = note; heldVel[heldCount] = (float) vel / 127.0f; ++heldCount;
-        curNote = note; curVel = (float) vel / 127.0f;
-        targetLog2F = noteFreqLog2 (note);
-        if (wasEmpty) midiNewNote = true; else noteChanged = true;
-    };
-    auto noteOff = [&] (int note)
-    {
-        if (! removeHeld (note)) return;
-        if (note == curNote && heldCount > 0)
-        {
-            curNote = heldNote[heldCount - 1];
-            curVel  = heldVel[heldCount - 1];
-            targetLog2F = noteFreqLog2 (curNote);
-            noteChanged = true;
-        }
-    };
-   #endif
+   #if ! A2B_SYNTH
 
     for (int i = 0; i < n; ++i)
     {
         // ---- bemenet (mono) ----
         float in = 0.0f;
-       #if A2B_SYNTH
-        // szintetizátor: csak az (opcionális) külső bemenet; engedélyezés nélkül nem olvasunk a pufferből
-        for (int c = 0; c < scCh; ++c) in += scIn[c][i];
-        in /= (float) juce::jmax (1, scCh);
-
-        // MIDI események ennél a mintánál
-        while (midiIt != midiEnd && (*midiIt).samplePosition <= chunkStart + i)
-        {
-            const auto meta = *midiIt;
-            const uint8_t* d = meta.data;
-            if (meta.numBytes >= 3)
-            {
-                const uint8_t st = d[0] & 0xF0;
-                if (st == 0x90 && d[2] > 0)                         noteOn (d[1], d[2]);
-                else if (st == 0x80 || st == 0x90)                  noteOff (d[1]);
-                else if (st == 0xE0)                                bendTarget = (float) ((((int) d[2] << 7) | (int) d[1]) - 8192) / 8192.0f * bendRange;
-                else if (st == 0xB0 && (d[1] == 123 || d[1] == 120)) { heldCount = 0; curNote = -1; }
-            }
-            ++midiIt;
-        }
-        bendCur += (bendTarget - bendCur) * bendCoef;
-       #else
         for (int c = 0; c < numCh; ++c) in += buffer.getReadPointer (c)[i];
         in /= (float) juce::jmax (1, numCh);
-       #endif
 
         const float a = std::abs (in);
         inPk = juce::jmax (inPk, a);
@@ -1231,7 +1257,6 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
         const float sdV = subDriveSm.getNextValue();
         if ((i & 7) == 0) { dg = 1.0f + driveV * 20.0f; dnorm = 1.0f / std::tanh (dg); }
 
-       #if ! A2B_SYNTH
         // ---- hangmagasság-követés ----
         if (tracker.push (in))
         {
@@ -1253,21 +1278,10 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
             }
         }
 
-       #endif
 
         curLog2F += (targetLog2F - curLog2F) * glideCoef;
 
         // ---- kapu / triggerek ----
-       #if A2B_SYNTH
-        // a kapu a lenyomott billentyűket követi
-        const bool open = heldCount > 0;
-        bool trig = false;
-        if (open && ! wasOpen) trig = true;
-        if (open && midiNewNote) trig = true;
-        if (open && retrig && noteChanged) trig = true;
-        midiNewNote = false;
-        noteChanged = false;
-       #else
         bool onset = false;
         if (onsetCooldown > 0) --onsetCooldown;
         if (onsetOn && onsetCooldown == 0 && envFast > envSlow * 1.6f + 1.0e-4f && envFast > thrLin)
@@ -1287,7 +1301,6 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
         if (open && onset) trig = true;
         noteChanged = false;
 
-       #endif
 
         if (trig)
         {
@@ -1314,11 +1327,7 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
         else noteSamples = 0;
         wasOpen = open;
 
-       #if A2B_SYNTH
-        const float dyn = curVel;
-       #else
         const float dyn = juce::jlimit (0.0f, 1.0f, env * 4.0f);
-       #endif
 
         // ---- LFO ----
         const float prevLfoPhase = lfoPhase;
@@ -1344,8 +1353,8 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
         fenv = fsus + (fenv - fsus) * fdecCoef;
 
         // ---- alapfrekvencia ----
-        const float penvScale = A2B_SYNTH ? ((1.0f - velPenv) + velPenv * curVel) : 1.0f;
-        const float log2f = curLog2F + trans / 12.0f + fineC / 1200.0f + bendCur / 12.0f
+        const float penvScale = 1.0f;
+        const float log2f = curLog2F + trans / 12.0f + fineC / 1200.0f
                           + lfo * lpitch / 1200.0f + penvAmt * penvScale / 12.0f * penv;
         const float f0 = std::exp2 (log2f);
 
@@ -1475,7 +1484,7 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
         // ---- szűrő ----
         if ((i & 7) == 0)
         {
-            const float octMod = lfo * lcut + fenvAmt * fenv + (A2B_SYNTH ? velCut * 0.75f : fin) * 4.0f * dyn
+            const float octMod = lfo * lcut + fenvAmt * fenv + fin * 4.0f * dyn
                                + fkey * (log2f - 6.7814f);
             const float cf = juce::jlimit (20.0f, (float) sr * 0.45f, cutV * std::exp2 (octMod));
             filtA.setCutoffFrequency (cf);
@@ -1529,7 +1538,7 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
         // ---- amp ----
         const float ampEnv = adsr.getNextSample();
         const float trem = 1.0f - lamp * 0.5f * (1.0f + lfo);
-        const float dynAmt = A2B_SYNTH ? velAmt : follow;
+        const float dynAmt = follow;
         const float amp = ampEnv * ((1.0f - dynAmt) + dynAmt * dyn) * trem;
 
         // Sidechain ducking (külső bemenet) és pump
@@ -1566,6 +1575,146 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
         wl[i] = wlI;
         wr[i] = wrI;
     }
+   #else
+    // ---- szintetizátor-mód: MIDI-vezérelt, polifonikus hangmotor ----
+    juce::ignoreUnused (fin, follow, retrig, srcLvl, srcSemiRatio, envAtk, envRel, fastAtk, fastRel, slowAtk, slowRel, distort,
+                        thrLin, holdSamples, onsetOn, ft, tapeCoef);
+    a2b::SynthParams& SP = synthP;
+    SP.sr = sr;
+    SP.o1wave = o1wave; SP.o2wave = o2wave; SP.o1ratio = o1ratio; SP.o2ratio = o2ratio;
+    SP.pw1 = o1pwP; SP.pw2 = o2pwP; SP.fm = fmAmt; SP.uniN = uniN;
+    for (int v = 0; v < kMaxUni; ++v) { SP.uniRatio[v] = uniRatio[v]; SP.uniGL[v] = uniGL[v]; SP.uniGR[v] = uniGR[v]; }
+    SP.h1on = h1on; SP.h2on = h2on; SP.h1ratio = h1ratio; SP.h2ratio = h2ratio; SP.h1l = h1l; SP.h2l = h2l;
+    SP.subWave = subWave; SP.subRatio = subRatio;
+    SP.driftScale = dk; SP.driftCoef = driftCoef; SP.phrand = phrand; SP.keysync = keysync; SP.lpw = lpw;
+    SP.trans = trans; SP.fine = fineC; SP.lpitchCents = lpitch; SP.mwVibCents = P ("mwvib") * 100.0f;
+    SP.penvAmt = penvAmt; SP.pdecCoef = pdecCoef; SP.velPenv = velPenv;
+    SP.glideCoef = glideCoef; SP.gleg = gleg;
+    SP.ftype = ft; SP.f24 = f24; SP.res = res; SP.fkey = fkey; SP.fenvAmt = fenvAmt; SP.fsus = fsus; SP.fdecCoef = fdecCoef;
+    SP.lcut = lcut; SP.velCut = velCut; SP.mwCutOct = P ("mwcut") * 3.0f;
+    SP.dtype = dtype; SP.distPost = distPost; SP.crushStep = crushStep; SP.tapeCoef = tapeCoef; SP.crateI = crateI;
+    SP.split = split; SP.xoverHz = xover;
+    SP.atkSamples = ap.attack * (float) sr; SP.decSamples = ap.decay * (float) sr; SP.sus = ap.sustain; SP.relSamples = ap.release * (float) sr;
+    SP.velAmt = velAmt; SP.lamp = lamp; SP.nlenSamples = nlenSamples;
+    SP.mode = (int) P ("vmode"); SP.voices = (int) P ("voices");
+    SP.quant = quant; SP.root = root; SP.scale = scaleI; SP.shiftOct = (float) shift; SP.bendRange = bendRange;
+
+    for (int i = 0; i < n; ++i)
+    {
+        // opcionális külső bemenet (vocoder-modulátor és sidechain-kulcs); letiltva nem olvasunk a pufferből
+        float in = 0.0f;
+        for (int c = 0; c < scCh; ++c) in += scIn[c][i];
+        in /= (float) juce::jmax (1, scCh);
+        inPk = juce::jmax (inPk, std::abs (in));
+
+        // MIDI események ennél a mintánál
+        while (midiIt != midiEnd && (*midiIt).samplePosition <= chunkStart + i)
+        {
+            const auto meta = *midiIt;
+            const uint8_t* d = meta.data;
+            if (meta.numBytes >= 3)
+            {
+                const uint8_t st = d[0] & 0xF0;
+                if (st == 0x90 && d[2] > 0)          synth.noteOn (d[1], d[2], SP);
+                else if (st == 0x80 || st == 0x90)   synth.noteOff (d[1], SP);
+                else if (st == 0xE0)                 synth.pitchBend (((int) d[2] << 7) | (int) d[1], SP);
+                else if (st == 0xB0)                 synth.controller (d[1], d[2], SP);
+            }
+            ++midiIt;
+        }
+
+        // LFO (közös az összes hangnak)
+        const float prevLfoPhase = lfoPhase;
+        lfoPhase += lfoHz / (float) sr;
+        if (lfoPhase >= 1.0f) lfoPhase -= 1.0f;
+        if (lfoPhase < prevLfoPhase)
+        {
+            rng = rng * 1664525u + 1013904223u;
+            lfoSH = (float) (int32_t) rng * 4.656612875e-10f;
+        }
+        float lfo;
+        switch (lshape)
+        {
+            case 0:  lfo = std::sin (2.0f * kPi * lfoPhase); break;
+            case 1:  lfo = 4.0f * std::abs (lfoPhase - 0.5f) - 1.0f; break;
+            case 2:  lfo = 2.0f * lfoPhase - 1.0f; break;
+            case 3:  lfo = lfoPhase < 0.5f ? 1.0f : -1.0f; break;
+            default: lfo = lfoSH; break;
+        }
+
+        a2b::SampleCtx ctx;
+        ctx.lfo = lfo;
+        ctx.o1l = o1Sm.getNextValue(); ctx.o2l = o2Sm.getNextValue();
+        ctx.subl = subSm.getNextValue(); ctx.noil = noiseSm.getNextValue();
+        ctx.driveV = driveSm.getNextValue(); ctx.cutV = cutSm.getNextValue(); ctx.sdV = subDriveSm.getNextValue();
+
+        float outL = 0.0f, outR = 0.0f;
+        synth.process (SP, ctx, outL, outR);
+
+        if (toneOn)
+        {
+            toneState[0] += toneCoef * (outL - toneState[0]); outL = toneState[0];
+            toneState[1] += toneCoef * (outR - toneState[1]); outR = toneState[1];
+        }
+
+        // Timbre-átvitel (vocoder): a külső bemenet spektrális alakját viszi a hangokra
+        if (vocMix > 0.001f)
+        {
+            float vl, vr;
+            vocoder.process (in, outL, outR, vl, vr);
+            vl *= vocGain; vr *= vocGain;
+            outL += (vl - outL) * vocMix;
+            outR += (vr - outR) * vocMix;
+        }
+
+        // Analóg zaj (halk, szűrt)
+        if (hissAmp > 0.0f)
+        {
+            rng = rng * 1664525u + 1013904223u;
+            const float nz = (float) (int32_t) rng * 4.656612875e-10f;
+            hissState += 0.35f * (nz - hissState);
+            outL += hissState * hissAmp;
+            outR += hissState * hissAmp;
+        }
+
+        outL = dc[0].process (outL);
+        outR = dc[1].process (outR);
+
+        duckGain += (duckT - duckGain) * duckCoef;
+
+        // Sidechain ducking (külső bemenet) és pump
+        float scT = 1.0f;
+        if (scCh > 0 && scAmt > 0.001f)
+        {
+            const float sIn = std::abs (in);
+            scEnv += (sIn > scEnv ? scAtk : scRel) * (sIn - scEnv);
+            if ((i & 7) == 0)
+            {
+                const float sdb = 20.0f * std::log10 (juce::jmax (scEnv, 1.0e-6f));
+                scX = juce::jlimit (0.0f, 1.0f, (sdb - scThr) / 12.0f);
+            }
+            scT = 1.0f - scAmt * scX;
+        }
+        scGain += (scT - scGain) * scSmooth;
+
+        pumpPhase += pumpInc;
+        if (pumpPhase >= 1.0) pumpPhase -= 1.0;
+        float pT = 1.0f;
+        if (pumpAmt > 0.001f)
+        {
+            const float tt = juce::jmin (1.0f, (float) pumpPhase / pumpRel);
+            pT = 1.0f - pumpAmt * (1.0f - tt * tt * (3.0f - 2.0f * tt));
+        }
+        pumpGain += (pT - pumpGain) * scSmooth;
+
+        float wlI = outL * duckGain * scGain * pumpGain;
+        float wrI = outR * duckGain * scGain * pumpGain;
+        if (mbOn) multiband.process (wlI, wrI);
+        if (tOn)  transient.process (wlI, wrI);
+        wl[i] = wlI;
+        wr[i] = wrI;
+    }
+   #endif
 
     // ---- chorus ----
     if (chmix > 0.001f)
@@ -1628,9 +1777,9 @@ void Audio2BassProcessor::processChunk (juce::AudioBuffer<float>& buffer, const 
 
     // GUI-információ (zármentes)
    #if A2B_SYNTH
-    info.voiced.store (heldCount > 0);
-    info.hz.store (heldCount > 0 ? std::exp2 (targetLog2F) : 0.0f);
-    info.confidence.store (heldCount > 0 ? curVel : 0.0f);
+    info.voiced.store (synth.anyGate());
+    info.hz.store (synth.anyGate() ? synth.lastHz() : 0.0f);
+    info.confidence.store (synth.lastVelocity());
    #else
     info.voiced.store (tracker.voiced());
     info.hz.store (tracker.voiced() ? tracker.pitchHz() : 0.0f);

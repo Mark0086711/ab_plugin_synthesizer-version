@@ -1,7 +1,8 @@
-# Audio2Bass – VST3 effekt FL Studiohoz
+# Audio2Bass és Audio2Synth: két VST3 FL Studiohoz
 
-A bejövő hangból (mp3/wav/ogg – bármi, ami a mixer insertbe érkezik) valós időben
-hangmagasságot detektál (YIN), és abból basszus-szintit játszik: oszcillátor + sub + szűrő + torzítás.
+Ez a projekt két pluginból áll, közös hangmotorral:
+- **Audio2Bass** (effekt): a bejövő hangból (mp3/wav/ogg, bármi, ami a mixer insertbe érkezik) valós időben hangmagasságot követ (YIN), és abból basszust játszik; az eredeti hangot is hangmagasságra tolhatja.
+- **Audio2Synth** (hanggenerátor): általános célú, **polifonikus** szintetizátor MIDI-vel (lead, pad, billentyűs, pluck, harang, rézfúvós, FX, basszus).
 
 ## Fordítás (Windows VST3)
 
@@ -61,15 +62,19 @@ Eredmény: `build/Audio2Bass_artefacts/Release/VST3/Audio2Bass.vst3`
 - **Original presetek:** Original Follow, Original Octave Down, Original Two Octaves Down, Original + Sub, Original Formant Saw, Original Dirty. Dinamikakövetés 100%.
 - **Korlátok:** egyszólamú forrásnál működik jól; az eltolás a formánsokat is vele viszi (mint a magnószalag sebességének változtatása), ezért pl. az énekhang oktávval lejjebb sötétebb, "nagyobb" lesz.
 
-## Audio2Bass Synth: hanggenerátor (instrument) változat
-Ugyanabból a forráskódból készül egy második VST3, az **Audio2BassSynth**: MIDI-vel játszható, monofonikus basszusszintetizátor. A teljes hangmotor ugyanaz, mint az effektben (két oszcillátor, unison, FM, sub, harmónia, szűrő, burkolók, LFO, torzítások, többsáv/OTT, vocoder, átmenet-formázó, true-peak limiter, presetek, A/B, morfolás, 808 Character).
-- **Mi változik:** a hangmagasságot, a hangot és a hosszt a MIDI adja (hangmagasság-követés helyett), a "Tracking" és az "Original Layer" nincs benne. A "Keys / MIDI" fülön: legato/retrigger, glide, jegyhossz, pitch bend tartomány, skálára zárás, oktáv- és félhang-eltolás, valamint velocity hatása a hangerőre, a szűrőre és a pitch drop-ra.
-- **Hangkezelés:** monofonikus, "utoljára játszott hang" prioritással. Felengedéskor, ha egy másik billentyű még le van nyomva, arra tér vissza (legato). Pitch bend, All Notes Off (CC123), sample-pontos MIDI-időzítés.
-- **Opcionális külső bemenet:** a vocoder modulátora és a sidechain ducking kulcsa. Alapból le van tiltva, a host adja az engedélyezést; engedélyezés nélkül a bemenetet nem olvassa, így nem szivárog át semmi.
-- **Telepítés:** `Audio2BassSynth.vst3`. FL Studióban a Find installed plugins után a generátorok között jelenik meg.
+## Audio2Synth: polifonikus szintetizátor (instrument), nem csak basszusra
+Ugyanabból a forráskódból készül egy második VST3, az **Audio2Synth**: általános célú, MIDI-vel játszható, **polifonikus** szintetizátor (lead, pad, billentyűs, pluck, harang, rézfúvós, FX és basszus). Az effekt (Audio2Bass) és a szintetizátor ugyanazt a hangmotort használja.
+- **Polifónia:** legfeljebb 16 hang (alapból 8, "Max Voices"). Minden hangnak saját oszcillátorai (2 oszcillátor, unison, FM, harmónia, sub, zaj), szűrője, burkolói, torzítása és pitch-burkolója van. Hangelvétel: ha elfogy a hang, először a legrégebbi felengedett, azután a legrégebbi hang esik ki. A hangszámmal arányos (RMS-állandó) hangerő-kiegyenlítés tartja egyben az akkordokat.
+- **Hangkezelés ("Voice Mode"):** Poly, Mono (újraindítja a burkolót minden új hangnál) és Legato (átfedő hangoknál csak a hangmagasság változik, glide-dal). Glide (csak legato hangoknál is kérhető), jegyhossz, kulcs-szinkron, véletlen fázis.
+- **MIDI:** pitch bend (állítható tartomány), mod wheel (CC1: vibrato és szűrő-nyitás), sustain pedál (CC64), All Notes Off (CC123), sample-pontos időzítés. Velocity hat a hangerőre, a szűrőre és a pitch drop-ra.
+- **Teljes hangmagasság-tartomány:** a hangok kb. 8 Hz – 16 kHz között szólnak (nincs basszus-tartományra vágva).
+- **Nem basszusra szabott alapértékek:** nyitott szűrő, nincs sub, nincs mono low end, nincs torzítás. A basszus-képességek külön "Bass" fülön megmaradtak (808 Character, sub, pitch drop, layer split, mono low end).
+- **Presetek:** Lead (Saw, Supersaw, Square, FM, Acid, Trance Pluck, Retro Poly), Pad (Warm, Glass, Strings Ensemble, Dark, Choir, Ambient Wash), Keys (FM Electric Piano, Clav, Organ, Soft Rhodes, Digital Keys), Pluck (Pluck Synth, Marimba, Arp Pluck, Kalimba), Bell-FM (FM Bell, Glass Bell, Music Box), Brass (Brass Section, Synth Brass Stab), FX (Riser Drone, Laser Zap, Noise Sweep), plusz az összes basszus-preset (808, Reese stb.), amelyek a szintetizátorban is pontosan úgy szólnak, mint az effektben.
+- **Opcionális külső bemenet:** a vocoder modulátora és a sidechain ducking kulcsa. Alapból le van tiltva; letiltva nem olvas a host pufferéből, így semmi nem szivárog át. A hangmagasság-követés és az Original Layer nincs benne (azokhoz bemeneti hang kell).
+- **Korlátok:** az LFO közös az összes hangra (nem hangonként újraindul). A hangok szűrője és torzítása hangonként dolgozik, ezért sok unison hangnál a CPU-igény nő (a legrosszabb eset, 16 hang × 7 unison × 2 oszcillátor, a mérések szerint a mag kb. 19%-a 48 kHz-en).
 
 ## AI presetkészítő ("AI Preset" fül)
-Műfaj-tudatos generátor, de **nem neurális háló és nem használ internetet**: műfaj-profilokból (16 műfaj: Trap 808, Drill, Hip-Hop, Dubstep, Reese/DnB, House, Techno, Acid, Synthwave, Funk, Lo-fi, Phonk, Pop/EDM, Ambient, Amapiano log drum, Wild) mintavételez egy seedelt véletlenszám-generátorral.
+Műfaj-tudatos generátor, de **nem neurális háló és nem használ internetet**: műfaj-profilokból (31 műfaj. Basszus: Trap 808, Drill, Hip-Hop, Dubstep, Reese/DnB, House, Techno, Acid, Synthwave, Funk, Lo-fi, Phonk, Pop/EDM, Ambient/Drone, Amapiano. Általános: Supersaw Lead, Classic Mono Lead, Pluck/Arp, Warm Pad, Dark Pad, Strings, Brass, FM Electric Piano, Organ, Bells/Mallets, Chiptune/8-bit, Acid Lead, Trance Pluck, Ambient Wash, Riser/FX. És a Wild/Experimental) mintavételez egy seedelt véletlenszám-generátorral.
 - **Leírás:** szabad szöveg angolul vagy magyarul ("dark, distorted, long glide, wide" / "sötét, torzított, hosszú"). Ismert szavak: dark/sötét, bright/világos, punchy/ütős, soft/lágy, distorted/torzított/dirty, clean/tiszta, wide/széles, mono, long/hosszú, short/rövid, glide/csúszó, wobble, growl, analog/vintage/warm/meleg, lofi, acid, pluck, sub/deep/mély, fat, pump, 808, saw/sine/square/triangle és továbbiak.
 - **Variáció:** 0 = a műfaj tipikus hangja, 1 = a legszélesebb szórás. **Seed:** ugyanaz a (műfaj, leírás, variáció, seed) mindig ugyanazt a presetet adja; a "Fixed seed" kapcsolóval reprodukálható. **Zárolás:** a zárolt csoportok (oszcillátor, szűrő+burkoló, LFO, torzítás, FX, low end) nem változnak. **Előzmények:** a "Back" és "Forward" gombbal visszaléphetsz a korábban generált presetek között.
 - A generált hangot elmentheted a "Save" gombbal saját presetként.
@@ -82,6 +87,7 @@ Műfaj-tudatos generátor, de **nem neurális háló és nem használ internetet
 ## Tesztek
 - `tests/tracker_test.cpp`: önálló, JUCE nélküli: ismert szinuszok (32–880 Hz), 4 mintavételi frekvencia, gyenge alapharmonikus, zaj, torzítás, vibrato, gyors hangváltás, csend, halk jel, CPU. Futtatás: `g++ -O2 -std=c++17 -ISource tests/tracker_test.cpp -o t && ./t`
 - `tests/fx_test.cpp`: önálló, JUCE nélküli: vocoder, többsáv/OTT, átmenet-formázó, true-peak limiter (beleértve a mintaközi csúcsokat).
+- `tests/poly_test.cpp`: önálló, JUCE nélküli: a polifonikus motor (akkord, független felengedés, hangelvétel, sustain pedál, mono/legato, C1–C9 tartomány, velocity, mod wheel, pitch bend, véletlen paraméterek, CPU).
 - `tests/gen_test.cpp`: önálló, JUCE nélküli: az AI generátor determinizmusa, műfaj-karakterek, kulcsszavak (magyarul is), értéktartományok.
 - `tests/synth_test.cpp`: a hanggenerátor változat: MIDI-hangmagasság, minden billentyű, felengedés, velocity, legato, pitch bend, sample-pontos időzítés, bemenet-szivárgás, sidechain, minden preset és műfaj.
 - `tests/processor_test.cpp`: a teljes processzor: blokkméretek (1–4096), mono/sztereó, mintavételi frekvenciák, automatizálás, 40 véletlen paraméterkészlet, minden preset betöltése és mentése/visszaállítása, CPU. A GitHub Actions "Tests (Windows)" workflow futtatja (`-DA2B_BUILD_TESTS=ON`).

@@ -57,34 +57,34 @@ target_link_libraries(Audio2Bass
         juce::juce_recommended_lto_flags)
 
 # ---- Audio2Bass Synth: hanggenerátor (MIDI-vezérelt) változat, ugyanabból a forráskódból ----
-juce_add_plugin(Audio2BassSynth
+juce_add_plugin(Audio2Synth
     COMPANY_NAME "AudioToBass"
     PLUGIN_MANUFACTURER_CODE Atob
     PLUGIN_CODE A2sy
     FORMATS VST3
-    PRODUCT_NAME "Audio2BassSynth"
+    PRODUCT_NAME "Audio2Synth"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE
     VST3_CATEGORIES Instrument Synth)
 
-juce_generate_juce_header(Audio2BassSynth)
+juce_generate_juce_header(Audio2Synth)
 
-target_sources(Audio2BassSynth PRIVATE
+target_sources(Audio2Synth PRIVATE
     ${A2B_SRC_DIR}/PluginProcessor.cpp
     ${A2B_SRC_DIR}/PluginProcessor.h
     ${A2B_SRC_DIR}/PluginEditor.cpp
     ${A2B_SRC_DIR}/PluginEditor.h)
-target_include_directories(Audio2BassSynth PRIVATE ${A2B_SRC_DIR})
+target_include_directories(Audio2Synth PRIVATE ${A2B_SRC_DIR})
 
-target_compile_definitions(Audio2BassSynth PUBLIC
+target_compile_definitions(Audio2Synth PUBLIC
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
     A2B_SYNTH=1)
 
-target_link_libraries(Audio2BassSynth
+target_link_libraries(Audio2Synth
     PRIVATE
         juce::juce_audio_utils
         juce::juce_dsp
@@ -95,7 +95,7 @@ target_link_libraries(Audio2BassSynth
 # ---- Opcionalis tesztek (CI: -DA2B_BUILD_TESTS=ON) ----
 option(A2B_BUILD_TESTS "Build Audio2Bass test executables" OFF)
 if(A2B_BUILD_TESTS)
-    set(A2B_TEST_FILES tracker_test.cpp fx_test.cpp gen_test.cpp processor_test.cpp synth_test.cpp)
+    set(A2B_TEST_FILES tracker_test.cpp fx_test.cpp gen_test.cpp poly_test.cpp processor_test.cpp synth_test.cpp)
     set(A2B_TEST_DIR "")
     foreach(candidate "${CMAKE_CURRENT_SOURCE_DIR}/tests" "${CMAKE_CURRENT_SOURCE_DIR}")
         set(all_found TRUE)
@@ -109,7 +109,7 @@ if(A2B_BUILD_TESTS)
         endif()
     endforeach()
     if(A2B_TEST_DIR STREQUAL "")
-        message(FATAL_ERROR "A tesztfajlok (tracker_test, fx_test, gen_test, processor_test, synth_test .cpp) nem talalhatok a repoban. "
+        message(FATAL_ERROR "A tesztfajlok (tracker_test, fx_test, gen_test, poly_test, processor_test, synth_test .cpp) nem talalhatok a repoban. "
                             "Toltsd fel oket a tests/ mappaba vagy a repo gyokerebe. (A VST3 build tesztek nelkul is mukodik.)")
     endif()
 
@@ -121,6 +121,9 @@ if(A2B_BUILD_TESTS)
 
     add_executable(a2b_gen_test ${A2B_TEST_DIR}/gen_test.cpp)
     target_include_directories(a2b_gen_test PRIVATE ${A2B_SRC_DIR})
+
+    add_executable(a2b_poly_test ${A2B_TEST_DIR}/poly_test.cpp)
+    target_include_directories(a2b_poly_test PRIVATE ${A2B_SRC_DIR})
 
     juce_add_console_app(Audio2BassProcessorTest PRODUCT_NAME "a2b_processor_test")
     juce_generate_juce_header(Audio2BassProcessorTest)
@@ -135,16 +138,16 @@ if(A2B_BUILD_TESTS)
         PRIVATE juce::juce_audio_utils juce::juce_dsp
         PUBLIC juce::juce_recommended_config_flags)
 
-    juce_add_console_app(Audio2BassSynthProcessorTest PRODUCT_NAME "a2b_synth_test")
-    juce_generate_juce_header(Audio2BassSynthProcessorTest)
-    target_sources(Audio2BassSynthProcessorTest PRIVATE
+    juce_add_console_app(Audio2SynthProcessorTest PRODUCT_NAME "a2b_synth_test")
+    juce_generate_juce_header(Audio2SynthProcessorTest)
+    target_sources(Audio2SynthProcessorTest PRIVATE
         ${A2B_TEST_DIR}/synth_test.cpp
         ${A2B_SRC_DIR}/PluginProcessor.cpp
         ${A2B_SRC_DIR}/PluginEditor.cpp)
-    target_include_directories(Audio2BassSynthProcessorTest PRIVATE ${A2B_SRC_DIR})
-    target_compile_definitions(Audio2BassSynthProcessorTest PRIVATE
+    target_include_directories(Audio2SynthProcessorTest PRIVATE ${A2B_SRC_DIR})
+    target_compile_definitions(Audio2SynthProcessorTest PRIVATE
         JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_MODAL_LOOPS_PERMITTED=1 A2B_SYNTH=1)
-    target_link_libraries(Audio2BassSynthProcessorTest
+    target_link_libraries(Audio2SynthProcessorTest
         PRIVATE juce::juce_audio_utils juce::juce_dsp
         PUBLIC juce::juce_recommended_config_flags)
 endif()

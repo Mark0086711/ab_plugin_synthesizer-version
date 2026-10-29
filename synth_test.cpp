@@ -178,7 +178,7 @@ int main()
 
     // 5) Legato: átfedő hangoknál a glide a második hangra csúsztat
     {
-        SynthRig r (fs, 256); r.pureSine(); setPlain (r.p, "glide", 60.0f); setPlain (r.p, "retrig", 0.0f);
+        SynthRig r (fs, 256); r.pureSine(); setPlain (r.p, "glide", 60.0f); setPlain (r.p, "retrig", 0.0f); setPlain (r.p, "vmode", 2.0f);
         std::vector<float> cap;
         r.play ({ noteOnEv (0, 45, 100), noteOnEv (sec (0.5), 52, 100) }, 1.8, 0.5, &cap);
         const double pNew = goertzelPow (cap, fs, noteHz (52)), pOld = goertzelPow (cap, fs, noteHz (45));
@@ -187,7 +187,7 @@ int main()
 
     // 6) A felengedett hang után visszatér a még tartott hangra
     {
-        SynthRig r (fs, 256); r.pureSine(); setPlain (r.p, "glide", 0.0f);
+        SynthRig r (fs, 256); r.pureSine(); setPlain (r.p, "glide", 0.0f); setPlain (r.p, "vmode", 1.0f);
         std::vector<float> cap;
         r.play ({ noteOnEv (0, 45, 100), noteOnEv (sec (0.3), 52, 100), noteOffEv (sec (0.8), 52) }, 1.6, 0.5, &cap);
         const double p45 = goertzelPow (cap, fs, noteHz (45)), p52 = goertzelPow (cap, fs, noteHz (52));
@@ -257,10 +257,11 @@ int main()
         {
             if (r.p.getProgramName (i).startsWith ("Original")) noOriginal = false;
             r.p.setCurrentProgram (i); pump (80);
-            auto s = r.play ({ noteOnEv (0, 36, 110) }, 0.5, 0.2);
-            if (! (s.finite && s.peak <= 1.001f && s.peak > 0.005f)) { allOk = false; if (bad.isEmpty()) bad = r.p.getProgramName (i); }
+            auto s = r.play ({ noteOnEv (0, 48, 110) }, 1.2, 0.2);
+            if (! (s.finite && s.peak <= 1.001f && s.peak > 0.003f)) { allOk = false; if (bad.isEmpty()) bad = r.p.getProgramName (i); }
         }
         check (allOk && noOriginal, "all " + juce::String (r.p.getNumPrograms()) + " synth presets play a note (finite, limited)", bad);
+        check (r.p.countInvalidPresetIds() == 0, "every factory preset sets only real parameters", juce::String (r.p.countInvalidPresetIds()) + " unknown IDs");
     }
 
     // 13) AI presetgenerátor: minden műfaj, több seed
@@ -276,8 +277,8 @@ int main()
 
                 SynthRig r (fs, 256);
                 r.p.generatePreset (g, "", 0.8f, seed, {}); pump (80);
-                auto s = r.play ({ noteOnEv (0, 36, 110) }, 0.6, 0.2);
-                if (! (s.finite && s.peak <= 1.001f && s.peak > 0.01f)) { playOk = false; if (badPlay.isEmpty()) badPlay = genres[g] + " #" + juce::String ((int) seed); }
+                auto s = r.play ({ noteOnEv (0, 48, 110) }, 1.5, 0.2);
+                if (! (s.finite && s.peak <= 1.001f && s.peak > 0.005f)) { playOk = false; if (badPlay.isEmpty()) badPlay = genres[g] + " #" + juce::String ((int) seed); }
             }
         check (idsOk, "generator only uses real parameter IDs", badId);
         check (playOk, "every genre x 3 seeds produces an audible, limited sound (" + juce::String (genres.size()) + " genres)", badPlay);
@@ -315,7 +316,7 @@ int main()
     }
 
     // 16) CPU
-    for (const char* name : { "Init Sub Bass", "Wide Mid Bass", "Distorted Trap 808" })
+    for (const char* name : { "Init", "Supersaw Lead", "Wide Mid Bass" })
     {
         SynthRig r (fs, 256);
         for (int i = 0; i < r.p.getNumPrograms(); ++i) if (r.p.getProgramName (i) == name) { r.p.setCurrentProgram (i); pump (80); }
@@ -323,6 +324,90 @@ int main()
         r.play ({ noteOnEv (0, 36, 110) }, 10.0, 0.5);
         const double secs = std::chrono::duration<double> (std::chrono::steady_clock::now() - a).count();
         check (secs / 10.0 * 100.0 < 30.0, juce::String ("CPU preset '") + name + "'", juce::String (secs / 10.0 * 100.0, 2) + " % of one core (48 kHz, 256 block)");
+    }
+
+    // 17) Polifónia: három billentyű egyszerre = három hang (akkord)
+    {
+        SynthRig r (fs, 256); r.pureSine();
+        std::vector<float> cap;
+        r.play ({ noteOnEv (0, 48, 110), noteOnEv (0, 52, 110), noteOnEv (0, 55, 110) }, 1.2, 0.5, &cap);
+        const double a = goertzelPow (cap, fs, noteHz (48)), b = goertzelPow (cap, fs, noteHz (52)), c = goertzelPow (cap, fs, noteHz (55)), gap = goertzelPow (cap, fs, noteHz (50));
+        const double mn = std::min ({ a, b, c });
+        check (mn > 100.0 * gap, "polyphonic: a C major chord has three notes", "weakest note is " + juce::String (10.0 * std::log10 (mn / std::max (gap, 1.0e-20)), 1) + " dB above the gap");
+    }
+
+    // 18) Az egyik hang felengedése nem érinti a többit
+    {
+        SynthRig r (fs, 256); r.pureSine(); setPlain (r.p, "rel", 40.0f);
+        std::vector<float> cap;
+        r.play ({ noteOnEv (0, 48, 110), noteOnEv (0, 52, 110), noteOnEv (0, 55, 110), noteOffEv (sec (0.5), 52) }, 1.4, 0.4, &cap);
+        const double a = goertzelPow (cap, fs, noteHz (48)), b = goertzelPow (cap, fs, noteHz (52)), c = goertzelPow (cap, fs, noteHz (55));
+        check (a > 10.0 * b && c > 10.0 * b, "polyphonic: releasing one note keeps the other two", "");
+    }
+
+    // 19) Hangszám-korlát: a legrégebbi hang esik ki
+    {
+        SynthRig r (fs, 256); r.pureSine(); setPlain (r.p, "voices", 2.0f);
+        std::vector<float> cap;
+        r.play ({ noteOnEv (0, 48, 110), noteOnEv (sec (0.1), 52, 110), noteOnEv (sec (0.2), 55, 110) }, 1.2, 0.4, &cap);
+        const double a = goertzelPow (cap, fs, noteHz (48)), b = goertzelPow (cap, fs, noteHz (52)), c = goertzelPow (cap, fs, noteHz (55));
+        check (a * 20.0 < std::min (b, c), "voice limit: the oldest note is stolen", "");
+    }
+
+    // 20) Sustain pedál (CC64)
+    {
+        SynthRig r (fs, 256); r.pureSine(); setPlain (r.p, "rel", 40.0f);
+        auto held = r.play ({ ccEv (0, 64, 127), noteOnEv (sec (0.05), 48, 110), noteOffEv (sec (0.25), 48) }, 0.9, 0.3);
+        SynthRig q (fs, 256); q.pureSine(); setPlain (q.p, "rel", 40.0f);
+        auto freed = q.play ({ ccEv (0, 64, 127), noteOnEv (sec (0.05), 48, 110), noteOffEv (sec (0.25), 48), ccEv (sec (0.6), 64, 0) }, 1.2, 0.3);
+        check (held.rmsTail > 0.1 && freed.rmsTail < 0.003, "sustain pedal holds the note until it is released",
+               "held " + juce::String (held.rmsTail, 3) + ", after pedal-up " + juce::String (freed.rmsTail, 5));
+    }
+
+    // 21) Teljes hangmagasság-tartomány billentyűkkel (nem csak basszus)
+    {
+        bool ok = true; juce::String det;
+        for (int note : { 36, 60, 84, 96, 108 })
+        {
+            SynthRig r (fs, 256); r.pureSine();
+            std::vector<float> cap;
+            r.play ({ noteOnEv (0, note, 110) }, 1.2, 0.6, &cap);
+            const double p = goertzelPow (cap, fs, noteHz (note)), lo = goertzelPow (cap, fs, noteHz (note) / 2.0);
+            if (! (p > 100.0 * lo && p > 0.01)) { ok = false; det += juce::String (note) + " "; }
+        }
+        check (ok, "full range: C2 .. C8 play at the right pitch", det);
+    }
+
+    // 22) Mono mód: csak az utolsó hang
+    {
+        SynthRig r (fs, 256); r.pureSine(); setPlain (r.p, "vmode", 1.0f);
+        std::vector<float> cap;
+        r.play ({ noteOnEv (0, 48, 110), noteOnEv (sec (0.3), 55, 110) }, 1.2, 0.4, &cap);
+        const double c3 = goertzelPow (cap, fs, noteHz (48)), g3 = goertzelPow (cap, fs, noteHz (55));
+        check (g3 > 100.0 * c3, "mono mode: only the last note sounds", "");
+    }
+
+    // 23) Mod wheel (CC1) a szűrőre
+    {
+        auto level = [&] (int mw)
+        {
+            SynthRig r (fs, 256); setPlain (r.p, "o1wave", 0.0f); setPlain (r.p, "o1lvl", 1.0f); setPlain (r.p, "cut", 250.0f);
+            setPlain (r.p, "mwcut", 1.0f);
+            return r.play ({ ccEv (0, 1, mw), noteOnEv (0, 48, 110) }, 1.0, 0.4).rmsTail;
+        };
+        const double closed = level (0), open = level (127);
+        check (open > closed * 1.3, "mod wheel opens the filter", juce::String (closed, 3) + " -> " + juce::String (open, 3));
+    }
+
+    // 24) Polifonikus CPU: 8 hangos akkord a Supersaw Lead presettel
+    {
+        SynthRig r (fs, 256);
+        for (int i = 0; i < r.p.getNumPrograms(); ++i) if (r.p.getProgramName (i) == "Supersaw Lead") { r.p.setCurrentProgram (i); pump (80); }
+        const auto a = std::chrono::steady_clock::now();
+        std::vector<Ev> ev; for (int k = 0; k < 8; ++k) ev.push_back (noteOnEv (0, 48 + k * 2, 100));
+        r.play (ev, 10.0, 0.5);
+        const double pct = std::chrono::duration<double> (std::chrono::steady_clock::now() - a).count() / 10.0 * 100.0;
+        check (pct < 50.0, "CPU: 8-note chord, Supersaw Lead (7 unison voices each)", juce::String (pct, 2) + " % of one core (48 kHz, 256 block)");
     }
 
     std::printf ("=== %s (%d failure%s) ===\n", failures == 0 ? "ALL PASSED" : "SOME FAILED", failures, failures == 1 ? "" : "s");
