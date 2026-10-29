@@ -21,5 +21,5 @@ jobs:
       - name: Upload Audio2Bass Synth (instrument) VST3
         uses: actions/upload-artifact@v4
         with:
-          name: Audio2BassSynth-VST3
-          path: build/Audio2BassSynth_artefacts/Release/VST3/Audio2BassSynth.vst3
+          name: Audio2Synth-VST3
+          path: build/Audio2Synth_artefacts/Release/VST3/Audio2Synth.vst3
